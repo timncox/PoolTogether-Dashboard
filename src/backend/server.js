@@ -4,12 +4,14 @@ const { Alchemy, Network } = require('alchemy-sdk');
 const app = express();
 const port = 3000;
 
-const settings = {
-  apiKey: 'YOUR_ALCHEMY_API_KEY',
-  network: Network.ETH_MAINNET, // Change to the appropriate network
-};
-
-const alchemy = new Alchemy(settings);
+const networks = [
+  { name: 'Ethereum Mainnet', network: Network.ETH_MAINNET },
+  { name: 'Optimism', network: Network.OPTIMISM },
+  { name: 'Base', network: Network.BASE },
+  { name: 'Arbitrum', network: Network.ARBITRUM },
+  { name: 'World', network: Network.WORLD },
+  { name: 'Scroll', network: Network.SCROLL },
+];
 
 app.get('/max-contribution', async (req, res) => {
   // Fetch and process data from Alchemy
@@ -19,31 +21,37 @@ app.get('/max-contribution', async (req, res) => {
 });
 
 async function getMaxContribution() {
-  // Example logic to fetch transactions and calculate max WETH contribution
-  const transactions = await alchemy.core.getAssetTransfers({
-    fromBlock: '0x0',
-    toBlock: 'latest',
-    contractAddresses: ['SMART_CONTRACT_ADDRESS'],
-    category: ['external'],
-  });
+  const contributions = {};
 
-  // Filter and calculate max contributions for each time frame
-  const maxToday = calculateMax(transactions, 'today');
-  const maxThisWeek = calculateMax(transactions, 'thisWeek');
-  const maxLast90Days = calculateMax(transactions, 'last90Days');
+  const networkConfigs = [
+    { name: 'Ethereum Mainnet', network: Network.ETH_MAINNET, contractAddress: 'ETHEREUM_CONTRACT_ADDRESS' },
+    { name: 'Optimism', network: Network.OPTIMISM, contractAddress: 'OPTIMISM_CONTRACT_ADDRESS' },
+    { name: 'Base', network: Network.BASE, contractAddress: 'BASE_CONTRACT_ADDRESS' },
+    { name: 'Arbitrum', network: Network.ARBITRUM, contractAddress: 'ARBITRUM_CONTRACT_ADDRESS' },
+    { name: 'World', network: Network.WORLD, contractAddress: 'WORLD_CONTRACT_ADDRESS' },
+    { name: 'Scroll', network: Network.SCROLL, contractAddress: 'SCROLL_CONTRACT_ADDRESS' },
+  ];
 
-  return {
-    today: maxToday,
-    thisWeek: maxThisWeek,
-    last90Days: maxLast90Days,
-  };
+  for (const { name, network, contractAddress } of networkConfigs) {
+    const alchemy = new Alchemy({ apiKey: process.env.ALCHEMY_API_KEY, network });
+    const transactions = await alchemy.core.getAssetTransfers({
+      fromBlock: '0x0',
+      toBlock: 'latest',
+      contractAddresses: [contractAddress],
+      category: ['external'],
+    });
+
+    contributions[name] = {
+      today: calculateMax(transactions, 'today'),
+      thisWeek: calculateMax(transactions, 'thisWeek'),
+      last90Days: calculateMax(transactions, 'last90Days'),
+    };
+  }
+
+  return contributions;
 }
 
 function calculateMax(transactions, timeFrame) {
   // Implement logic to filter transactions by timeFrame and calculate max WETH
   return 0; // Placeholder
 }
-
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-}); 
