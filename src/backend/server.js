@@ -2,7 +2,6 @@ const express = require('express');
 const { Alchemy, Network } = require('alchemy-sdk');
 
 const app = express();
-const port = 3000;
 
 const networks = [
   { name: 'Ethereum Mainnet', network: Network.ETH_MAINNET },
@@ -14,8 +13,6 @@ const networks = [
 ];
 
 app.get('/max-contribution', async (req, res) => {
-  // Fetch and process data from Alchemy
-  // Example: Fetch transactions and calculate max WETH contribution
   const maxContribution = await getMaxContribution();
   res.json(maxContribution);
 });
@@ -55,3 +52,6 @@ function calculateMax(transactions, timeFrame) {
   // Implement logic to filter transactions by timeFrame and calculate max WETH
   return 0; // Placeholder
 }
+
+// Export the app for Vercel
+module.exports = app;
